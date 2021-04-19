@@ -180,7 +180,7 @@ func (db *Database) GetStops(tripNumber int) []TripStopInfo {
 
 // Get the weekly schedule for a given driver and date
 func (db *Database) GetDriverWeeklySchedule(driverName string, date string) []TripOffering {
-    sameWeek := func(t1, t2 time.Time) bool {
+    sameWeek := func(t1, t2 *time.Time) bool {
         year1, week1 := t1.ISOWeek()
         year2, week2 := t2.ISOWeek()
         return year1 == year2 && week1 == week2
@@ -206,7 +206,7 @@ func (db *Database) GetDriverWeeklySchedule(driverName string, date string) []Tr
         if err != nil {
             log.Fatal(err)
         }
-        if sameWeek(date1, date2) {
+        if sameWeek(&date1, &date2) {
             result = append(result, TripOffering{
                 TripNumber:           tripNumber,
                 Date:                 date,
