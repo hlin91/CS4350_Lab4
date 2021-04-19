@@ -87,6 +87,7 @@ func (db *Database) GetSchedule(startLocationName, destinationName, date string)
             DestinationName:   destinationName,
         })
     }
+    row.Close()
     // Get the trip offerings for each trip
     offerings := make(map[int][]TripOffering)
     for _, t := range trips {
@@ -114,6 +115,7 @@ func (db *Database) GetSchedule(startLocationName, destinationName, date string)
                 BusID:                busID,
             })
         }
+        row.Close()
     }
     return trips, offerings
 }
@@ -150,6 +152,7 @@ func (db *Database) GetStops(tripNumber int) []TripStopInfo {
     if err != nil {
         log.Fatal(err)
     }
+    defer row.Close()
     stops := []TripStopInfo{}
     for row.Next() {
         var TripNumber int
@@ -175,6 +178,10 @@ func (db *Database) GetDriverWeeklySchedule(driverName string, date string) []Tr
         return year1 == year2 && week1 == week2
     }
     row, err := db.Query("SELECT * FROM TripOffering WHERE DriverName=%q", driverName)
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer row.Close()
     date1, err := time.Parse(DATE_FORMAT, date)
     if err != nil {
         log.Fatal(err)
