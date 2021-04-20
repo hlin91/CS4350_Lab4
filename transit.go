@@ -34,13 +34,13 @@ type TripOffering struct {
 }
 
 func (t TripOffering) String() string {
-    return fmt.Sprintf("TripNumber: %d\nDate: %s\nScheduledStartTime: %s\nScheduledArrivalTime: %s\nDriverName: %s\nBusID: %d", t.TripNumber, t.Date, t.ScheduledStartTime, t.ScheduledArrivalTime, t.DriverName, t.BusID)
+    return fmt.Sprintf("TripNumber: %d\nDate: %s\nScheduledStartTime: %s\nSchedu.SpririvalTime: %s\nDriverName: %s\nBusID: %d", t.TripNumber,t.Date, t.ScheduledStartTime, t.ScheduledArrivalTime, t.DriverName, t.BusID)
 }
 
 type Bus struct {
     BusID int
     Model string
-    Year  uint
+    Year  int
 }
 
 func (b Bus) String() string {
@@ -96,15 +96,8 @@ type Database struct {
     *sql.DB
 }
 
-// GetSchedule returns all trip offerings for the given information
-func (db *Database) GetSchedule(startLocationName, destinationName, date string) ([]Trip, map[int][]TripOffering, error) {
+func RowToTrips(row *sql.Rows) []Trip {
     trips := []Trip{}
-    offerings := make(map[int][]TripOffering)
-    row, err := db.Query(fmt.Sprintf("SELECT * FROM Trip WHERE StartLocationName=%s", startLocationName))
-    if err != nil {
-        return trips, offerings, err
-    }
-    // Get the trips with the given start location name
     for row.Next() {
         var tripNumber int
         var startLocationName string
@@ -116,6 +109,128 @@ func (db *Database) GetSchedule(startLocationName, destinationName, date string)
             DestinationName:   destinationName,
         })
     }
+    return trips
+}
+
+func RowToTripOfferings(row *sql.Rows) []TripOffering {
+    tripOffering := []TripOffering{}
+  for row.Next() {
+    var tripNumber int
+    var date string
+    var scheduledStartTime string
+    var scheduledArrivalTime string
+    var driverName string
+    var busID int
+    row.Scan(&tripNumber, &date, &scheduledStartTime,&scheduledArrivalTime,&driverName,&busID)
+    tripOffering = append(tripOffering, TripOffering {
+      TripNumber: tripNumber,
+      Date: date,
+      ScheduledStartTime: scheduledStartTime,
+      ScheduledArrivalTime: scheduledArrivalTime,
+      DriverName: driverName,
+      BusID: busID,
+    })
+  }
+  return tripOffering
+}
+
+func RowToBuses(row *sql.Rows) []Bus {
+    result := []Bus{}
+    for row.Next() {
+        var busID int
+        var model string
+        var year int
+        row.Scan(&busID, &model, &year)
+        result = append(result, Bus{
+            BusID: busID,
+            Model: model,
+            Year: year,
+        })
+    }
+    return result
+}
+
+func RowToDrivers(row *sql.Rows) []Driver {
+    result := []Driver{}
+    for row.Next() {
+        var driverName string
+        var driverTelephoneNumber string
+        row.Scan(&driverName, &driverTelephoneNumber)
+        result = append(result, Driver{
+            DriverName: driverName,
+            DriverTelephoneNumber: driverTelephoneNumber,
+        })
+    }
+    return result
+}
+
+func RowToStops(row *sql.Rows) []Stop {
+  result := []Stop{}
+  for row.Next() {
+    var stopNumber int
+    var stopAddress string
+    result = append(result, Stop {
+      StopNumber: stopNumber,
+      StopAddress: stopAddress,
+    })
+  }
+  return result
+}
+
+func RowToActualStopInfos(row *sql.Rows) []ActualTripStopInfo {
+    result := []ActualTripStopInfo{}
+    for row.Next() {
+        var tripNumber int
+        var date string
+        var scheduledStartTime string
+        var stopNumber int
+        var scheduledArrivalTime string
+        var actualStartTime string
+        var actualArrivalTime string
+        var numberOfPassengerIn int
+        var numberOfPassengerOut int
+        result = append(result, ActualTripStopInfo{
+            TripNumber: tripNumber,
+            Date: date,
+            ScheduledStartTime: scheduledStartTime,
+            StopNumber: stopNumber,
+            ScheduledArrivalTime: scheduledArrivalTime,
+            ActualStartTime: actualStartTime,
+            ActualArrivalTime: actualArrivalTime,
+            NumberOfPassengerIn: numberOfPassengerIn,
+            NumberOfPassengerOut: numberOfPassengerOut,
+        })
+    }
+    return result
+}
+
+func RowToTripStopInfos(row *sql.Rows) []TripStopInfo {
+  result := []TripStopInfo{}
+  for row.Next() {
+    var tripNumber int
+    var stopNumber int
+    var sequenceNumber int
+    var drivingTime float32
+    result = append(result, TripStopInfo {
+      TripNumber:tripNumber,
+      StopNumber:stopNumber,
+      SequenceNumber:sequenceNumber,
+      DrivingTime:drivingTime,
+    })
+  }
+  return result
+}
+
+// GetSchedule returns all trip offerings for the given information
+func (db *Database) GetSchedule(startLocationName, destinationName, date string) ([]Trip, map[int][]TripOffering, error) {
+    trips := []Trip{}
+    offerings := make(map[int][]TripOffering)
+    row, err := db.Query(fmt.Sprintf("SELECT * FROM Trip WHERE StartLocationName=%s", startLocationName))
+    if err != nil {
+        return trips, offerings, err
+    }
+    // Get the trips with the given start location name
+    trips = RowToTrips(row)
     row.Close()
     // Get the trip offerings for each trip
     for _, t := range trips {
@@ -170,6 +285,13 @@ func (db *Database) ChangeDriver(driverName string, tripNumber int, date string,
     _, err := db.Query(fmt.Sprintf("UPDATE Trip SET DriverName=%q WHERE TripNumber=%d AND Date=%q AND ScheduledStartTime=%q", driverName, tripNumber, date, scheduledStartTime))
     return err
 }
+
+// ChangeBus will change the BusID of the trip given the composite key info
+func (db *Database) ChangeBus(busID int, tripNumber int, date string, scheduledStartTime string) error {
+    _, err := db.Query(fmt.Sprintf("UPDATE Trip SET BusID=%d WHERE TripNumber=%d AND Date=%q AND ScheduledStartTime=%q", busID, tripNumber, date, scheduledStartTime))
+    return err
+}
+
 
 // GetStops returns all stops for a given trip number
 func (db *Database) GetStops(tripNumber int) ([]TripStopInfo, error) {
@@ -251,9 +373,18 @@ func (db *Database) AddDriver(driverName string, driverTelephoneNumber string) e
 }
 
 // AddBus adds a bus to the SQLite database, returning err if falied
-func (db *Database) AddBus(busID int, model string, year uint) error {
+func (db *Database) AddBus(busID int, model string, year int) error {
     _, err := db.Query(fmt.Sprintf("INSERT INTO Bus (BusID, Model, year) VALUES(%d, %q, %d)", busID, model, year))
     return err
+}
+
+
+func (db *Database) AddOffering(tripNumber int, date string, scheduledStartTime string, scheduledArrivalTime string, driverName string, busID int) error {
+    _, err := db.Query("INSERT INTO TripOffering (TripNumber, Date, ScheduledStartTime, ScheduledArrivalTime, DriverName, BusID) VALUES (%d, %q, %q, %q, %q, %d)", tripNumber, date, scheduledStartTime, scheduledArrivalTime, driverName, busID)
+    if err != nil {
+        return err
+    }
+    return nil
 }
 
 // DeleteBus deletes a bus from the SQLite database, returning err if failed
