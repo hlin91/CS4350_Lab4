@@ -20,6 +20,10 @@ type Trip struct {
     DestinationName   string
 }
 
+func (t Trip) String() string {
+    return fmt.Sprintf("TripNumber: %d\nStartLocationName: %s\nDestinationName: %s", t.TripNumber, t.StartLocationName, t.DestinationName)
+}
+
 type TripOffering struct {
     TripNumber           int
     Date                 string
@@ -29,10 +33,18 @@ type TripOffering struct {
     BusID                int
 }
 
+func (t TripOffering) String() string {
+    return fmt.Sprintf("TripNumber: %d\nDate: %s\nScheduledStartTime: %s\nScheduledArrivalTime: %s\nDriverName: %s\nBusID: %d", t.TripNumber, t.Date, t.ScheduledStartTime, t.ScheduledArrivalTime, t.DriverName, t.BusID)
+}
+
 type Bus struct {
     BusID int
     Model string
     Year  uint
+}
+
+func (b Bus) String() string {
+    return fmt.Sprintf("BusID: %d\nModel: %s\nYear: %d", b.BusID, b.Model, b.Year)
 }
 
 type Driver struct {
@@ -40,9 +52,17 @@ type Driver struct {
     DriverTelephoneNumber string
 }
 
+func (d Driver) String() string {
+    return fmt.Sprintf("DriverName: %s\nDriverTelephoneNumber: %s", d.DriverName, d.DriverTelephoneNumber)
+}
+
 type Stop struct {
     StopNumber  int
-    StopAddress int
+    StopAddress string
+}
+
+func (s Stop) String() string {
+    return fmt.Sprintf("StopNumber: %d\nStopAddress: %s", s.StopNumber, s.StopAddress)
 }
 
 type ActualTripStopInfo struct {
@@ -57,11 +77,19 @@ type ActualTripStopInfo struct {
     NumberOfPassengerOut int
 }
 
+func (a ActualTripStopInfo) String() string {
+    return fmt.Sprintf("TripNumber: %d\nDate: %s\nScheduledStartTime: %s\nStopNumber: %d\nScheduledArrivalTime: %s\nActualStartTime: %s\nActualArrivalTime: %s\nNumberOfPassengerIn: %d\nNumberOfPassengerOut: %d", a.TripNumber, a.Date, a.ScheduledStartTime, a.StopNumber, a.ScheduledArrivalTime, a.ActualStartTime, a.ActualArrivalTime, a.NumberOfPassengerIn, a.NumberOfPassengerOut)
+}
+
 type TripStopInfo struct {
     TripNumber     int
     StopNumber     int
     SequenceNumber int
     DrivingTime    int
+}
+
+func (t TripStopInfo) String() string {
+    return fmt.Sprintf("TripNumber: %d\nStopNumber: %d\nSequenceNumber: %d\nDrivingTime: %d")
 }
 
 type Database struct {
