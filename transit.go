@@ -85,7 +85,7 @@ type TripStopInfo struct {
     TripNumber     int
     StopNumber     int
     SequenceNumber int
-    DrivingTime    int
+    DrivingTime    float32
 }
 
 func (t TripStopInfo) String() string {
@@ -97,13 +97,14 @@ type Database struct {
 }
 
 // GetSchedule returns all trip offerings for the given information
-func (db *Database) GetSchedule(startLocationName, destinationName, date string) ([]Trip, map[int][]TripOffering) {
+func (db *Database) GetSchedule(startLocationName, destinationName, date string) ([]Trip, map[int][]TripOffering, error) {
+    trips := []Trip{}
+    offerings := make(map[int][]TripOffering)
     row, err := db.Query(fmt.Sprintf("SELECT * FROM Trip WHERE StartLocationName=%s", startLocationName))
     if err != nil {
-        log.Fatal(err)
+        return trips, offerings, err
     }
     // Get the trips with the given start location name
-    trips := []Trip{}
     for row.Next() {
         var tripNumber int
         var startLocationName string
@@ -117,11 +118,10 @@ func (db *Database) GetSchedule(startLocationName, destinationName, date string)
     }
     row.Close()
     // Get the trip offerings for each trip
-    offerings := make(map[int][]TripOffering)
     for _, t := range trips {
         row, err := db.Query(fmt.Sprintf("SELECT * FROM TripOffering WHERE TripNumber=%d", t.TripNumber))
         if err != nil {
-            log.Fatal(err)
+            return trips, offerings, err
         }
         for row.Next() {
             var tripNumber int
@@ -145,7 +145,7 @@ func (db *Database) GetSchedule(startLocationName, destinationName, date string)
         }
         row.Close()
     }
-    return trips, offerings
+    return trips, offerings, nil
 }
 
 // DeleteOffering deletes the trip offering with the given primary keys
@@ -172,21 +172,21 @@ func (db *Database) ChangeDriver(driverName string, tripNumber int, date string,
 }
 
 // GetStops returns all stops for a given trip number
-func (db *Database) GetStops(tripNumber int) []TripStopInfo {
+func (db *Database) GetStops(tripNumber int) ([]TripStopInfo, error) {
     //SELECT TSI
     //FROM TripStopInfo TSI
     //WHERE TSI.TripNumber = tripNumber
+    stops := []TripStopInfo{}
     row, err := db.Query(fmt.Sprintf("SELECT * FROM TripStopInfo TSI WHERE TSI.TripNumber = %d", tripNumber))
     if err != nil {
-        log.Fatal(err)
+        return stops, err
     }
     defer row.Close()
-    stops := []TripStopInfo{}
     for row.Next() {
         var TripNumber int
         var StopNumber int
         var SequenceNumber int
-        var DrivingTime int
+        var DrivingTime float32
         row.Scan(&TripNumber, &StopNumber, &SequenceNumber, &DrivingTime)
         stops = append(stops, TripStopInfo{
             TripNumber:     TripNumber,
@@ -195,11 +195,12 @@ func (db *Database) GetStops(tripNumber int) []TripStopInfo {
             DrivingTime:    DrivingTime,
         })
     }
-    return stops
+    return stops, nil
 }
 
 // Get the weekly schedule for a given driver and date
-func (db *Database) GetDriverWeeklySchedule(driverName string, date string) []TripOffering {
+func (db *Database) GetDriverWeeklySchedule(driverName string, date string) ([]TripOffering, error) {
+    result := []TripOffering{}
     sameWeek := func(t1, t2 *time.Time) bool {
         year1, week1 := t1.ISOWeek()
         year2, week2 := t2.ISOWeek()
@@ -207,16 +208,15 @@ func (db *Database) GetDriverWeeklySchedule(driverName string, date string) []Tr
     }
     row, err := db.Query("SELECT * FROM TripOffering WHERE DriverName=%q", driverName)
     if err != nil {
-        log.Fatal(err)
+        return result, err
     }
     defer row.Close()
     date1, err := time.Parse(DATE_FORMAT, date)
     if err != nil {
-        log.Fatal(err)
+        return result, err
     }
-    result := []TripOffering{}
     if err != nil {
-        log.Fatal(err)
+        return result, err
     }
     for row.Next() {
         var tripNumber int
@@ -241,7 +241,7 @@ func (db *Database) GetDriverWeeklySchedule(driverName string, date string) []Tr
             })
         }
     }
-    return result
+    return result, nil
 }
 
 // AddDriver adds a driver to the SQLite database
@@ -262,8 +262,8 @@ func (db *Database) DeleteBus(busID int) error {
     return err
 }
 
-func (db *Database) AddTripStopInfo(tripNumber int, stopNumber int, sequenceNumber int, drivingTime int) error {
-    _, err := db.Query(fmt.Sprintf("INSERT INTO TripStopInfo (TripNumber, StopNumber, SequenceNumber, DrivingTime) Values (%d, %d, %d, %d)"), tripNumber, stopNumber, sequenceNumber, drivingTime)
+func (db *Database) AddTripStopInfo(tripNumber int, stopNumber int, sequenceNumber int, drivingTime float32) error {
+    _, err := db.Query(fmt.Sprintf("INSERT INTO TripStopInfo (TripNumber, StopNumber, SequenceNumber, DrivingTime) Values (%d, %d, %d, %f)"), tripNumber, stopNumber, sequenceNumber, drivingTime)
     return err
 }
 
@@ -274,5 +274,10 @@ func (db *Database) AddActualTripStopInfo(tripNumber int, date string, scheduled
 
 func (db *Database) AddTrip(tripNumber int, startLocationName string, destinationName string) error {
     _, err := db.Query(fmt.Sprintf("INSERT INTO Trip (TripNumber, StartLocationName,DestinationName) VALUES(%d,%q,%q)"), tripNumber, startLocationName, destinationName)
+    return err
+}
+
+func (db *Database) AddStop(stopNumber int, stopAddress string) error {
+    _, err := db.Query(fmt.Sprintf("INSERT INTO Stop (StopNumber, StopAddress) VALUES (%d, %q)", stopNumber, stopAddress))
     return err
 }
