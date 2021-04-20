@@ -5,12 +5,16 @@ import (
     "database/sql"
     "fmt"
     _ "github.com/mattn/go-sqlite3"
+    "io/ioutil"
     "log"
+    "os"
+    "strings"
     "time"
 )
 
 const (
-    DATABASE_PATH = "./Lab4.db"
+    DATABASE_PATH = `./Lab4.db`
+    SCHEMA_PATH = `./lab4_create-tables.sql`
     DATE_FORMAT   = time.RFC3339
 )
 
@@ -94,6 +98,126 @@ func (t TripStopInfo) String() string {
 
 type Database struct {
     *sql.DB
+}
+
+// GetDatabase constructs and returns a database object
+func GetDatabase() (*Database, error) {
+    newFile := false
+    var db *Database
+    if _, err := os.Stat(DATABASE_PATH); os.IsNotExist(err) {
+        log.Println("Creating database file")
+        _, err := os.Create(DATABASE_PATH)
+        if err != nil {
+            return nil, err
+        }
+        newFile = true
+    }
+    log.Printf("Opening SQLite file %s\n", DATABASE_PATH)
+    tempDB, err := sql.Open("sqlite3", DATABASE_PATH)
+    if err != nil {
+        return nil, err
+    }
+    db = &Database{tempDB}
+    if newFile {
+        // Need to create the tables
+        log.Println("Creating tables")
+        f, err := ioutil.ReadFile(SCHEMA_PATH)
+        if err != nil {
+            return nil, err
+        }
+        sqlCommands := strings.Split(string(f), ";")
+        for _, s := range(sqlCommands) {
+            _, err := db.Query(s)
+            if err != nil {
+                return nil, err
+            }
+        }
+    }
+    return db, nil
+}
+
+// GetTripTable returns all the trips in the database
+func (db *Database) GetTripTable() ([]Trip, error) {
+    result := []Trip{}
+    row, err := db.Query("SELECT * FROM Trip")
+    if err != nil {
+        return result, err
+    }
+    defer row.Close()
+    result = RowToTrips(row)
+    return result, nil
+}
+
+// GetTripOfferingTable returns all the offerings in the database
+func (db *Database) GetTripOfferingTable() ([]TripOffering, error) {
+    result := []TripOffering{}
+    row, err := db.Query("SELECT * FROM TripOffering")
+    if err != nil {
+        return result, err
+    }
+    defer row.Close()
+    result = RowToTripOfferings(row)
+    return result, nil
+}
+
+// GetDriverTable returns all the drivers in the database
+func (db *Database) GetDriverTable() ([]Driver, error) {
+    result := []Driver{}
+    row, err := db.Query("SELECT * FROM Driver")
+    if err != nil {
+        return result, err
+    }
+    defer row.Close()
+    result = RowToDrivers(row)
+    return result, nil
+}
+
+// GetStopTable returns all the stops in the database
+func (db *Database) GetStopTable() ([]Stop, error) {
+    result := []Stop{}
+    row, err := db.Query("SELECT * FROM Stop")
+    if err != nil {
+        return result, err
+    }
+    defer row.Close()
+    result = RowToStops(row)
+    return result, nil
+}
+
+// GetActualTripStopInfoTable returns all the actual stop info in the database
+func (db *Database) GetActualTripStopInfoTable() ([]ActualTripStopInfo, error) {
+    result := []ActualTripStopInfo{}
+    row, err := db.Query("SELECT * FROM Stop")
+    if err != nil {
+        return result, err
+    }
+    defer row.Close()
+    result = RowToActualStopInfos(row)
+    return result, nil
+}
+
+// GetBusTable returns all the buses in the database
+func (db *Database) GetBusTable() ([]Bus, error) {
+    result := []Bus{}
+    row, err := db.Query("SELECT * FROM Bus")
+    if err != nil {
+        return result, err
+    }
+    defer row.Close()
+    result = RowToBuses(row)
+    return result, nil
+}
+
+// GetTripStopInfoTable returns all the trip stop info in the database
+func (db *Database) GetTripStopInfoTable() ([]TripStopInfo, error) {
+    result := []TripStopInfo{}
+    row, err := db.Query("SELECT * FROM TripStopInfo")
+    if err != nil {
+        return result, err
+    }
+    defer row.Close()
+    result = RowToTripStopInfos(row)
+    return result, nil
 }
 
 func RowToTrips(row *sql.Rows) []Trip {

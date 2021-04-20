@@ -2,8 +2,6 @@ package main
 
 import (
     "bufio"
-    "database/sql"
-    _ "github.com/mattn/go-sqlite3"
     "fmt"
     "log"
     "os"
@@ -16,20 +14,10 @@ const (
 )
 
 func main() {
-    if _, err := os.Stat(DATABASE_PATH); os.IsNotExist(err) {
-        fmt.Println("Creating database file")
-        _, err := os.Create(DATABASE_PATH)
-        if err != nil {
-            log.Fatal(err)
-        }
-    }
-    log.Printf("Opening SQLite file %s\n", DATABASE_PATH)
-    tempDB, err := sql.Open("sqlite3", DATABASE_PATH)
+    db, err := GetDatabase()
     if err != nil {
-        log.Printf("main.go: failed to open database: %v\n", err)
-        return
+        log.Fatal(err)
     }
-    db := Database{tempDB}
     defer db.Close()
     log.Printf("Successfully opened database %s\n", DATABASE_PATH)
     input := bufio.NewScanner(os.Stdin)
@@ -39,7 +27,7 @@ func main() {
             return
         }
         args := strings.Fields(input.Text())
-        processCommand(&db, args[0], args[1:])
+        processCommand(db, args[0], args[1:])
         fmt.Print("Enter command: ")
     }
 }
@@ -300,81 +288,4 @@ func processCommand(db *Database, command string, args []string) error {
 func toInt(s string) int {
   i, _ := strconv.Atoi(s)
   return i
-}
-
-func (db *Database) GetTripTable() ([]Trip, error) {
-    result := []Trip{}
-    row, err := db.Query("SELECT * FROM Trip")
-    if err != nil {
-        return result, err
-    }
-    defer row.Close()
-    result = RowToTrips(row)
-    return result, nil
-}
-
-func (db *Database) GetTripOfferingTable() ([]TripOffering, error) {
-    result := []TripOffering{}
-    row, err := db.Query("SELECT * FROM TripOffering")
-    if err != nil {
-        return result, err
-    }
-    defer row.Close()
-    result = RowToTripOfferings(row)
-    return result, nil
-}
-
-func (db *Database) GetDriverTable() ([]Driver, error) {
-    result := []Driver{}
-    row, err := db.Query("SELECT * FROM Driver")
-    if err != nil {
-        return result, err
-    }
-    defer row.Close()
-    result = RowToDrivers(row)
-    return result, nil
-}
-
-func (db *Database) GetStopTable() ([]Stop, error) {
-    result := []Stop{}
-    row, err := db.Query("SELECT * FROM Stop")
-    if err != nil {
-        return result, err
-    }
-    defer row.Close()
-    result = RowToStops(row)
-    return result, nil
-}
-
-func (db *Database) GetActualTripStopInfoTable() ([]ActualTripStopInfo, error) {
-    result := []ActualTripStopInfo{}
-    row, err := db.Query("SELECT * FROM Stop")
-    if err != nil {
-        return result, err
-    }
-    defer row.Close()
-    result = RowToActualStopInfos(row)
-    return result, nil
-}
-
-func (db *Database) GetBusTable() ([]Bus, error) {
-    result := []Bus{}
-    row, err := db.Query("SELECT * FROM Bus")
-    if err != nil {
-        return result, err
-    }
-    defer row.Close()
-    result = RowToBuses(row)
-    return result, nil
-}
-
-func (db *Database) GetTripStopInfoTable() ([]TripStopInfo, error) {
-    result := []TripStopInfo{}
-    row, err := db.Query("SELECT * FROM TripStopInfo")
-    if err != nil {
-        return result, err
-    }
-    defer row.Close()
-    result = RowToTripStopInfos(row)
-    return result, nil
 }
