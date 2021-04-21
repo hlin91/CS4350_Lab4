@@ -14,7 +14,7 @@ import (
 
 const (
     DATABASE_PATH = `./Lab4.db`
-    SCHEMA_PATH = `./lab4_create-tables.sql`
+    SCHEMA_PATH   = `./lab4_create-tables.sql`
     DATE_FORMAT   = time.RFC3339
 )
 
@@ -38,7 +38,7 @@ type TripOffering struct {
 }
 
 func (t TripOffering) String() string {
-    return fmt.Sprintf("TripNumber: %d\nDate: %s\nScheduledStartTime: %s\nSchedu.SpririvalTime: %s\nDriverName: %s\nBusID: %d", t.TripNumber,t.Date, t.ScheduledStartTime, t.ScheduledArrivalTime, t.DriverName, t.BusID)
+    return fmt.Sprintf("TripNumber: %d\nDate: %s\nScheduledStartTime: %s\nSchedu.SpririvalTime: %s\nDriverName: %s\nBusID: %d", t.TripNumber, t.Date, t.ScheduledStartTime, t.ScheduledArrivalTime, t.DriverName, t.BusID)
 }
 
 type Bus struct {
@@ -126,7 +126,7 @@ func GetDatabase() (*Database, error) {
             return nil, err
         }
         sqlCommands := strings.Split(string(f), ";")
-        for _, s := range(sqlCommands) {
+        for _, s := range sqlCommands {
             _, err := db.Query(s)
             if err != nil {
                 return nil, err
@@ -240,24 +240,24 @@ func RowToTrips(row *sql.Rows) []Trip {
 // RowToTripOfferings converts a sql row to a slice of trip offerings
 func RowToTripOfferings(row *sql.Rows) []TripOffering {
     tripOffering := []TripOffering{}
-  for row.Next() {
-    var tripNumber int
-    var date string
-    var scheduledStartTime string
-    var scheduledArrivalTime string
-    var driverName string
-    var busID int
-    row.Scan(&tripNumber, &date, &scheduledStartTime,&scheduledArrivalTime,&driverName,&busID)
-    tripOffering = append(tripOffering, TripOffering {
-      TripNumber: tripNumber,
-      Date: date,
-      ScheduledStartTime: scheduledStartTime,
-      ScheduledArrivalTime: scheduledArrivalTime,
-      DriverName: driverName,
-      BusID: busID,
-    })
-  }
-  return tripOffering
+    for row.Next() {
+        var tripNumber int
+        var date string
+        var scheduledStartTime string
+        var scheduledArrivalTime string
+        var driverName string
+        var busID int
+        row.Scan(&tripNumber, &date, &scheduledStartTime, &scheduledArrivalTime, &driverName, &busID)
+        tripOffering = append(tripOffering, TripOffering{
+            TripNumber:           tripNumber,
+            Date:                 date,
+            ScheduledStartTime:   scheduledStartTime,
+            ScheduledArrivalTime: scheduledArrivalTime,
+            DriverName:           driverName,
+            BusID:                busID,
+        })
+    }
+    return tripOffering
 }
 
 // RowToBuses converts a sql row to a slice of buses
@@ -271,7 +271,7 @@ func RowToBuses(row *sql.Rows) []Bus {
         result = append(result, Bus{
             BusID: busID,
             Model: model,
-            Year: year,
+            Year:  year,
         })
     }
     return result
@@ -285,7 +285,7 @@ func RowToDrivers(row *sql.Rows) []Driver {
         var driverTelephoneNumber string
         row.Scan(&driverName, &driverTelephoneNumber)
         result = append(result, Driver{
-            DriverName: driverName,
+            DriverName:            driverName,
             DriverTelephoneNumber: driverTelephoneNumber,
         })
     }
@@ -294,16 +294,16 @@ func RowToDrivers(row *sql.Rows) []Driver {
 
 // RowToStops converts a sql row to a slice of stops
 func RowToStops(row *sql.Rows) []Stop {
-  result := []Stop{}
-  for row.Next() {
-    var stopNumber int
-    var stopAddress string
-    result = append(result, Stop {
-      StopNumber: stopNumber,
-      StopAddress: stopAddress,
-    })
-  }
-  return result
+    result := []Stop{}
+    for row.Next() {
+        var stopNumber int
+        var stopAddress string
+        result = append(result, Stop{
+            StopNumber:  stopNumber,
+            StopAddress: stopAddress,
+        })
+    }
+    return result
 }
 
 // RowToActualStopInfos converts a sql row to a slice of actual stop infos
@@ -320,14 +320,14 @@ func RowToActualStopInfos(row *sql.Rows) []ActualTripStopInfo {
         var numberOfPassengerIn int
         var numberOfPassengerOut int
         result = append(result, ActualTripStopInfo{
-            TripNumber: tripNumber,
-            Date: date,
-            ScheduledStartTime: scheduledStartTime,
-            StopNumber: stopNumber,
+            TripNumber:           tripNumber,
+            Date:                 date,
+            ScheduledStartTime:   scheduledStartTime,
+            StopNumber:           stopNumber,
             ScheduledArrivalTime: scheduledArrivalTime,
-            ActualStartTime: actualStartTime,
-            ActualArrivalTime: actualArrivalTime,
-            NumberOfPassengerIn: numberOfPassengerIn,
+            ActualStartTime:      actualStartTime,
+            ActualArrivalTime:    actualArrivalTime,
+            NumberOfPassengerIn:  numberOfPassengerIn,
             NumberOfPassengerOut: numberOfPassengerOut,
         })
     }
@@ -336,20 +336,20 @@ func RowToActualStopInfos(row *sql.Rows) []ActualTripStopInfo {
 
 // RowToTripStopInfos converts a sql row to a slice of trip stop infos
 func RowToTripStopInfos(row *sql.Rows) []TripStopInfo {
-  result := []TripStopInfo{}
-  for row.Next() {
-    var tripNumber int
-    var stopNumber int
-    var sequenceNumber int
-    var drivingTime float32
-    result = append(result, TripStopInfo {
-      TripNumber:tripNumber,
-      StopNumber:stopNumber,
-      SequenceNumber:sequenceNumber,
-      DrivingTime:drivingTime,
-    })
-  }
-  return result
+    result := []TripStopInfo{}
+    for row.Next() {
+        var tripNumber int
+        var stopNumber int
+        var sequenceNumber int
+        var drivingTime float32
+        result = append(result, TripStopInfo{
+            TripNumber:     tripNumber,
+            StopNumber:     stopNumber,
+            SequenceNumber: sequenceNumber,
+            DrivingTime:    drivingTime,
+        })
+    }
+    return result
 }
 
 // GetSchedule returns all trip offerings for the given information
@@ -422,7 +422,6 @@ func (db *Database) ChangeBus(busID int, tripNumber int, date string, scheduledS
     _, err := db.Query(fmt.Sprintf("UPDATE Trip SET BusID=%d WHERE TripNumber=%d AND Date=%q AND ScheduledStartTime=%q", busID, tripNumber, date, scheduledStartTime))
     return err
 }
-
 
 // GetStops returns all stops for a given trip number
 func (db *Database) GetStops(tripNumber int) ([]TripStopInfo, error) {
@@ -508,7 +507,6 @@ func (db *Database) AddBus(busID int, model string, year int) error {
     _, err := db.Query(fmt.Sprintf("INSERT INTO Bus (BusID, Model, year) VALUES(%d, %q, %d)", busID, model, year))
     return err
 }
-
 
 func (db *Database) AddOffering(tripNumber int, date string, scheduledStartTime string, scheduledArrivalTime string, driverName string, busID int) error {
     _, err := db.Query("INSERT INTO TripOffering (TripNumber, Date, ScheduledStartTime, ScheduledArrivalTime, DriverName, BusID) VALUES (%d, %q, %q, %q, %q, %d)", tripNumber, date, scheduledStartTime, scheduledArrivalTime, driverName, busID)

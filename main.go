@@ -5,8 +5,8 @@ import (
     "fmt"
     "log"
     "os"
-    "strings"
     "strconv"
+    "strings"
 )
 
 const (
@@ -43,9 +43,9 @@ func processCommand(db *Database, command string, args []string) error {
      * change (driver/bus) keys...
      */
     switch command {
-        case "get": // Get a set of information given a set of keys
+    case "get": // Get a set of information given a set of keys
         switch args[0] {
-            case "schedule":
+        case "schedule":
             if len(args) != 4 {
                 return fmt.Errorf("Wrong number of arguments passed. Expected %d, got %d\n", 4, len(args))
             }
@@ -53,15 +53,15 @@ func processCommand(db *Database, command string, args []string) error {
             if err != nil {
                 return err
             }
-            for _, t := range(trips) {
+            for _, t := range trips {
                 fmt.Println("Trip\n---")
-                for _, o := range(offerings[t.TripNumber]) {
+                for _, o := range offerings[t.TripNumber] {
                     fmt.Println(o)
                 }
             }
-            case "stops":
+        case "stops":
             if len(args) != 2 {
-              return fmt.Errorf("Wrong number of arguments passed. Expected %d, got %d\n", 2, len(args))
+                return fmt.Errorf("Wrong number of arguments passed. Expected %d, got %d\n", 2, len(args))
             }
             num, err := strconv.Atoi(args[1])
             if err != nil {
@@ -69,12 +69,12 @@ func processCommand(db *Database, command string, args []string) error {
             }
             stops, err := db.GetStops(num)
             if err != nil {
-              return err
+                return err
             }
-            for _, stop := range(stops) {
-              fmt.Println(stop)
+            for _, stop := range stops {
+                fmt.Println(stop)
             }
-            case "weekly":
+        case "weekly":
             if len(args) != 3 {
                 return fmt.Errorf("Wrong number of arguments passed. Expected %d, got %d\n", 3, len(args))
             }
@@ -82,131 +82,131 @@ func processCommand(db *Database, command string, args []string) error {
             if err != nil {
                 return err
             }
-            for _, o := range(offerings) {
+            for _, o := range offerings {
                 fmt.Println(o)
             }
-            default:
+        default:
             return fmt.Errorf("Unknown command %q\n", args[0])
         }
-        
-        case "display": // Display a row in the table (for debugging)
+
+    case "display": // Display a row in the table (for debugging)
         if len(args) != 1 {
             return fmt.Errorf("Wrong number of arguments passed. Expected %d, got %d\n", 1, len(args))
         }
         switch args[0] {
-            case "trip":
+        case "trip":
             table, err := db.GetTripTable()
             if err != nil {
                 return err
             }
             fmt.Println(table)
-            case "offering":
+        case "offering":
             table, err := db.GetTripOfferingTable()
             if err != nil {
                 return err
             }
             fmt.Println(table)
-            case "bus":
+        case "bus":
             table, err := db.GetBusTable()
             if err != nil {
                 return err
             }
             fmt.Println(table)
-            case "driver":
+        case "driver":
             table, err := db.GetDriverTable()
             if err != nil {
                 return err
             }
             fmt.Println(table)
-            case "stop":
+        case "stop":
             table, err := db.GetStopTable()
             if err != nil {
                 return err
             }
             fmt.Println(table)
-            case "actualinfo":
+        case "actualinfo":
             table, err := db.GetActualTripStopInfoTable()
             if err != nil {
                 return err
             }
             fmt.Println(table)
-            case "stopinfo":
+        case "stopinfo":
             table, err := db.GetTripStopInfoTable()
             if err != nil {
                 return err
             }
             fmt.Println(table)
-            default:
+        default:
             return fmt.Errorf("Unknown command %q\n", args[0])
         }
 
-        case "add": // Add a row into the databases
-          switch args[0] {
-            case "trip":
-              if len(args) != 4 {
+    case "add": // Add a row into the databases
+        switch args[0] {
+        case "trip":
+            if len(args) != 4 {
                 return fmt.Errorf("Wrong number of arguments passed. Expected %d, got %d\n", 4, len(args))
-              }
-              num, err := strconv.Atoi(args[1])
-              if err != nil {
-                  return err
-              }
-              err = db.AddTrip(num,args[2],args[3])
-              if err != nil {
+            }
+            num, err := strconv.Atoi(args[1])
+            if err != nil {
                 return err
-              }
-            case "offering":
-              if len(args) != 7 {
+            }
+            err = db.AddTrip(num, args[2], args[3])
+            if err != nil {
+                return err
+            }
+        case "offering":
+            if len(args) != 7 {
                 return fmt.Errorf("Wrong number of arguments passed. Expected %d, got %d\n", 7, len(args))
-              }
-              err := db.AddOffering(toInt(args[1]), args[2], args[3], args[4], args[5], toInt(args[6]))
-              if err != nil {
+            }
+            err := db.AddOffering(toInt(args[1]), args[2], args[3], args[4], args[5], toInt(args[6]))
+            if err != nil {
                 return err
-              }
-            case "bus":
-              if len(args) != 4 {
+            }
+        case "bus":
+            if len(args) != 4 {
                 return fmt.Errorf("Wrong number of arguments passed. Expected %d, got %d\n", 4, len(args))
-              }
-              err := db.AddBus(toInt(args[1]), args[2], toInt(args[3]))
-              if err != nil {
+            }
+            err := db.AddBus(toInt(args[1]), args[2], toInt(args[3]))
+            if err != nil {
                 return err
-              }
-            case "driver":
-              if len(args) != 3 {
+            }
+        case "driver":
+            if len(args) != 3 {
                 return fmt.Errorf("Wrong number of arguments passed. Expected %d, got %d\n", 3, len(args))
-              }
-              err := db.AddDriver(args[1], args[2])
-              if err != nil {
+            }
+            err := db.AddDriver(args[1], args[2])
+            if err != nil {
                 return err
-              }
-            case "stop":
-              if len(args) != 3 {
+            }
+        case "stop":
+            if len(args) != 3 {
                 return fmt.Errorf("Wrong number of arguments passed. Expected %d, got %d\n", 3, len(args))
-              }
-              err := db.AddStop(toInt(args[1]), args[2])
-              if err != nil {
+            }
+            err := db.AddStop(toInt(args[1]), args[2])
+            if err != nil {
                 return err
-              }
-            case "actualinfo":
-              if len(args) != 10 {
+            }
+        case "actualinfo":
+            if len(args) != 10 {
                 return fmt.Errorf("Wrong number of arguments passed. Expected %d, got %d\n", 10, len(args))
-              }
-              err := db.AddActualTripStopInfo(toInt(args[1]),args[2],args[3],toInt(args[4]),args[5],args[6],args[7],toInt(args[8]),toInt(args[9]))
-              if err != nil {
+            }
+            err := db.AddActualTripStopInfo(toInt(args[1]), args[2], args[3], toInt(args[4]), args[5], args[6], args[7], toInt(args[8]), toInt(args[9]))
+            if err != nil {
                 return err
-              }
-            case "stopinfo":
-              if len(args) != 5 {
+            }
+        case "stopinfo":
+            if len(args) != 5 {
                 return fmt.Errorf("Wrong number of arguments passed. Expected %d, got %d\n", 5, len(args))
-              }
-              drivetime, _ := strconv.ParseFloat(args[4], 32)
-              float32_drivetime := float32(drivetime)
-              err := db.AddTripStopInfo(toInt(args[1]), toInt(args[2]), toInt(args[3]), float32_drivetime)
-              if err != nil {
+            }
+            drivetime, _ := strconv.ParseFloat(args[4], 32)
+            float32_drivetime := float32(drivetime)
+            err := db.AddTripStopInfo(toInt(args[1]), toInt(args[2]), toInt(args[3]), float32_drivetime)
+            if err != nil {
                 return err
-              }
-          }
-        
-        case "addofferings": // Add a set of rows into the database
+            }
+        }
+
+    case "addofferings": // Add a set of rows into the database
         if len(args) != 0 {
             return fmt.Errorf("Wrong number of arguments passed. Expected %d, got %d\n", 0, len(args))
         }
@@ -236,10 +236,10 @@ func processCommand(db *Database, command string, args []string) error {
                 return err
             }
         }
-        
-        case "delete": // Deletes a trip from the database
+
+    case "delete": // Deletes a trip from the database
         switch args[0] {
-            case "offer":
+        case "offer":
             if len(args) != 4 {
                 return fmt.Errorf("Wrong number of arguments passed. Expected %d, got %d\n", 4, len(args))
             }
@@ -248,15 +248,15 @@ func processCommand(db *Database, command string, args []string) error {
                 return err
             }
             db.DeleteOffering(tripNumber, args[2], args[3])
-            case "bus":
+        case "bus":
             if len(args) != 2 {
-              return fmt.Errorf("Wrong number of arguments passed. Expected %d, got %d\n",2,len(args))
+                return fmt.Errorf("Wrong number of arguments passed. Expected %d, got %d\n", 2, len(args))
             }
             db.DeleteBus(toInt(args[1]))
         }
-        case "change": // Change the driver or bus for a trip
+    case "change": // Change the driver or bus for a trip
         switch args[0] {
-            case "driver":
+        case "driver":
             if len(args) != 5 {
                 return fmt.Errorf("Wrong number of arguments passed. Expected %d, got %d\n", 5, len(args))
             }
@@ -265,7 +265,7 @@ func processCommand(db *Database, command string, args []string) error {
                 return err
             }
             return db.ChangeDriver(args[1], tripNumber, args[3], args[4])
-            case "bus":
+        case "bus":
             if len(args) != 5 {
                 return fmt.Errorf("Wrong number of arguments passed. Expected %d, got %d\n", 5, len(args))
             }
@@ -279,13 +279,13 @@ func processCommand(db *Database, command string, args []string) error {
             }
             return db.ChangeBus(busID, tripNumber, args[3], args[4])
         }
-        default:
+    default:
         fmt.Errorf("Unknown command %q\n", command)
     }
-  return nil
+    return nil
 }
 
 func toInt(s string) int {
-  i, _ := strconv.Atoi(s)
-  return i
+    i, _ := strconv.Atoi(s)
+    return i
 }
