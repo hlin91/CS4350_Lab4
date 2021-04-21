@@ -220,6 +220,7 @@ func (db *Database) GetTripStopInfoTable() ([]TripStopInfo, error) {
     return result, nil
 }
 
+// RowToTrips converts a sql row to a slice of trips
 func RowToTrips(row *sql.Rows) []Trip {
     trips := []Trip{}
     for row.Next() {
@@ -236,6 +237,7 @@ func RowToTrips(row *sql.Rows) []Trip {
     return trips
 }
 
+// RowToTripOfferings converts a sql row to a slice of trip offerings
 func RowToTripOfferings(row *sql.Rows) []TripOffering {
     tripOffering := []TripOffering{}
   for row.Next() {
@@ -258,6 +260,7 @@ func RowToTripOfferings(row *sql.Rows) []TripOffering {
   return tripOffering
 }
 
+// RowToBuses converts a sql row to a slice of buses
 func RowToBuses(row *sql.Rows) []Bus {
     result := []Bus{}
     for row.Next() {
@@ -274,6 +277,7 @@ func RowToBuses(row *sql.Rows) []Bus {
     return result
 }
 
+// RowToDrivers converts a sql row to a slice of drivers
 func RowToDrivers(row *sql.Rows) []Driver {
     result := []Driver{}
     for row.Next() {
@@ -288,6 +292,7 @@ func RowToDrivers(row *sql.Rows) []Driver {
     return result
 }
 
+// RowToStops converts a sql row to a slice of stops
 func RowToStops(row *sql.Rows) []Stop {
   result := []Stop{}
   for row.Next() {
@@ -301,6 +306,7 @@ func RowToStops(row *sql.Rows) []Stop {
   return result
 }
 
+// RowToActualStopInfos converts a sql row to a slice of actual stop infos
 func RowToActualStopInfos(row *sql.Rows) []ActualTripStopInfo {
     result := []ActualTripStopInfo{}
     for row.Next() {
@@ -328,6 +334,7 @@ func RowToActualStopInfos(row *sql.Rows) []ActualTripStopInfo {
     return result
 }
 
+// RowToTripStopInfos converts a sql row to a slice of trip stop infos
 func RowToTripStopInfos(row *sql.Rows) []TripStopInfo {
   result := []TripStopInfo{}
   for row.Next() {
@@ -517,21 +524,25 @@ func (db *Database) DeleteBus(busID int) error {
     return err
 }
 
+// AddTripStopInfo adds a trip stop info to the database
 func (db *Database) AddTripStopInfo(tripNumber int, stopNumber int, sequenceNumber int, drivingTime float32) error {
     _, err := db.Query(fmt.Sprintf("INSERT INTO TripStopInfo (TripNumber, StopNumber, SequenceNumber, DrivingTime) Values (%d, %d, %d, %f)"), tripNumber, stopNumber, sequenceNumber, drivingTime)
     return err
 }
 
+// AddActualTripStopInfo adds an actual trip stop info to the database
 func (db *Database) AddActualTripStopInfo(tripNumber int, date string, scheduledStartTime string, stopNumber int, scheduledArrivalTime string, actualStartTime string, actualArrivalTime string, numberOfPassengerIn int, numberOfPassengerOut int) error {
     _, err := db.Query(fmt.Sprintf("INSERT INTO ActualTripStopInfo (TripNumber, Date, ScheduledStartTime, StopNumber, ScheduledArrivalTime, ActualStartTime, ActualArrivalTime, NumberOfPassengerIn, NumberOfPassengerOut) VALUES (%d, %q, %q, %d, %q, %q, %q, %d, %d)"), tripNumber, date, scheduledStartTime, stopNumber, scheduledArrivalTime, actualStartTime, actualArrivalTime, numberOfPassengerIn, numberOfPassengerOut)
     return err
 }
 
+// AddTrip adds a trip to the database
 func (db *Database) AddTrip(tripNumber int, startLocationName string, destinationName string) error {
     _, err := db.Query(fmt.Sprintf("INSERT INTO Trip (TripNumber, StartLocationName,DestinationName) VALUES(%d,%q,%q)"), tripNumber, startLocationName, destinationName)
     return err
 }
 
+// AddStop adds a stop to the database
 func (db *Database) AddStop(stopNumber int, stopAddress string) error {
     _, err := db.Query(fmt.Sprintf("INSERT INTO Stop (StopNumber, StopAddress) VALUES (%d, %q)", stopNumber, stopAddress))
     return err
